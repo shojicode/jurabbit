@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "svelte.svelte-vscode",
+        "christian-kohler.npm-intellisense",
+        "bradlc.vscode-tailwindcss"
+    ]
+}
