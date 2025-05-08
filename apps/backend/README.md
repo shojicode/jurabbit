@@ -1,4 +1,24 @@
 # Jurabbit Backend
+v0.1.0
+## 環境
+|ジャンル|プロダクト名|
+|---|---|
+|言語|TypeScript|
+|フレームワーク|Hono|
+|コンピューティング|Cloudflare Workers|
+|データベース|Cloudflare D1|
+|CI/CD|GitHub Actions|
+
+## 機能
+- オペレータ用
+  - 馬券購入の解禁・締切
+  - 競走結果の登録
+- ユーザ/クライアント用
+  - 馬券購入
+  - 当選者の確認
+  - 競走馬の情報の取得
+- その他
+  - 当選者の枚挙処理
 ## API Documentation
 ### POST /enable_betting
 **説明**: 馬券購入を解禁する
