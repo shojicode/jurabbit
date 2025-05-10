@@ -12,7 +12,8 @@
   "kv_namespaces": [
     {
       "binding": "jurabbit_mode",
-      "id": "1255721fc308415a9279c74a98172281"
+      "id": "1255721fc308415a9279c74a98172281",
+      "preview_id": "7abe99c954144b4f85eafb20e2f1cae1"
     }
   ],
   // "r2_buckets": [
