@@ -24,7 +24,7 @@
   // ],
   "d1_databases": [
     {
-      "binding": "DB",
+      "binding": "jurabbit_store",
       "database_name": "jurabbit_store",
       "database_id": "13471d77-b608-410e-b0d5-1422d0863fa8"
     }
