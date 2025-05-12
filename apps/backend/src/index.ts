@@ -17,6 +17,31 @@ app.get('/', (c) => {
   return c.text('This is the backend API for jurabbit')
 })
 
+// current race id
+app.get('/current_race', async (c) => {
+  if (!c.env.jurabbit_mode) {
+    return c.json({ error: 'KV storage is not available' }, 500);
+  }
+  const currentRaceId = await c.env.jurabbit_mode.get('current_race');
+  return c.json({ currentRaceId: currentRaceId });
+})
+
+// set current race id (for operators)
+app.post('/current_race', async (c) => {
+  if (!c.env.jurabbit_mode) {
+    return c.json({ error: 'KV storage is not available' }, 500);
+  }
+  const body = await c.req.json();
+  const raceId = body.raceId;
+
+  if (typeof raceId !== 'number' || raceId <= 0) {
+    return c.json({ error: 'Invalid raceId' }, 400);
+  }
+  await c.env.jurabbit_mode.put('current_race', raceId.toString());
+  return c.json({ message: 'Current race id set successfully' });
+})
+
+
 // enable betting (for operators)
 app.post('/enable_betting', async (c) => {
   if (!c.env.jurabbit_mode) {
