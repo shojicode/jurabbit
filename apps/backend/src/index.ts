@@ -113,7 +113,14 @@ app.get('/results/:id', async (c) => {
   const requiredRaceId = parseInt(c.req.param('id'), 10);
   const db = drizzle(c.env.jurabbit_store);
 
-  const searchedResults = await db.select().from(results).where(eq(results.raceId, requiredRaceId));
+  const searchedResults = await db
+    .select({
+      horseId: results.horseId,
+      rank: results.rank
+    })
+    .from(results)
+    .where(eq(results.raceId, requiredRaceId));
+  
   return c.json(searchedResults);
 })
 
