@@ -3,7 +3,7 @@ import { D1Database, KVNamespace } from '@cloudflare/workers-types'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { results } from './schema'
+import { results, userPredictions } from './schema'
 
 type Bindings = {
   jurabbit_mode: KVNamespace,
@@ -153,8 +153,57 @@ app.get('/results/:id', async (c) => {
 // app.get('/winners/:race_id', (c) => {
 // })
 
-// // issue a bet (for users)
-// app.post('/bet', (c) => {
-// })
+// issue a bet (for users)
+app.post('/bet', async (c) => {
+  if (!c.env.jurabbit_store) {
+    return c.json({ error: 'D1 database is not available' }, 500);
+  }
+  const body = await c.req.json();
+  const BetSchema = z.object({
+    userId: z.string(),
+    raceId: z.number().int().positive(),
+    firstChoice: z.number().int().positive(),  // it should be a horse id
+    secondChoice: z.number().int().positive().optional(),
+    thirdChoice: z.number().int().positive().optional()
+  });
+
+  const parsedBet = BetSchema.safeParse(body);
+  if (!parsedBet.success) {
+    return c.json(
+      {
+        error: 'Invalid request body',
+        details: parsedBet.error.format()
+      }, 400);
+  }
+
+  const parsedBody = parsedBet.data;
+  const db = drizzle(c.env.jurabbit_store);
+  
+  try {
+    await db
+    .insert(userPredictions)
+    .values({
+      userId: parsedBody.userId,
+      raceId: parsedBody.raceId,
+      firstChoice: parsedBody.firstChoice,
+      secondChoice: parsedBody.secondChoice ?? null,
+      thirdChoice: parsedBody.thirdChoice ?? null
+    });
+
+    return c.json({
+      message: 'Bet placed successfully',
+      bet: {
+        userId: parsedBody.userId,
+        raceId: parsedBody.raceId,
+        firstChoice: parsedBody.firstChoice,
+        secondChoice: parsedBody.secondChoice,
+        thirdChoice: parsedBody.thirdChoice
+      }
+    });
+  } catch (error) {
+    console.error('Error placing bet:', error);
+    return c.json({ error: 'You have already placed a bet' }, 400);
+  }
+})
 
 export default app
