@@ -21,6 +21,9 @@
     let isSubmitting = false;
     let isUpdating = false; // 予想更新モード
     
+    // 更新前の予想結果を保存するための変数
+    let originalBetResult: any = null;
+    
     // ドラッグ＆ドロップ関連
     let draggedDinoId: number | null = null;
     let dragSourceIndex: number | null = null; // ドラッグ開始位置
@@ -35,6 +38,11 @@
                 fetchDinoData(),
                 fetchBettingStatus()
             ]);
+            
+            // 現在のレースIDが取得できたら、ユーザーの予想を取得
+            if (currentRaceId) {
+                await fetchUserPrediction();
+            }
         } catch (err) {
             error = 'データの初期化に失敗しました: ' + (err instanceof Error ? err.message : String(err));
         }
@@ -85,6 +93,33 @@
         }
     }
     
+    // ユーザーの予想を取得
+    async function fetchUserPrediction() {
+        try {
+            isLoading = true;
+            // 新しいAPIエンドポイント - ユーザーの予想を取得
+            const response = await fetch(`${API_URL.get.user_prediction}/${currentRaceId}`, {
+                credentials: 'include' // Cookieを送信
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.bet) {
+                    // 予想データがある場合はbetResultに設定
+                    betResult = data;
+                }
+            } else if (response.status !== 404) {
+                // 404はユーザーの予想が存在しないだけなのでエラーとしない
+                error = 'あなたの予想を取得できませんでした';
+            }
+        } catch (err) {
+            console.error('予想取得エラー:', err);
+            // 致命的ではないエラーなのでユーザーには表示しない
+        } finally {
+            isLoading = false;
+        }
+    }
+    
     // 恐竜の選択処理
     function toggleDinoSelection(dinoId: number) {
         const index = selectedDinos.indexOf(dinoId);
@@ -100,10 +135,21 @@
     
     // 賭けをリセット
     function resetBet() {
+        // 更新モードに入る前に現在の予想結果を保存
+        originalBetResult = betResult;
         selectedDinos = [];
-        betResult = null;
         error = null;
         isUpdating = true; // 予想更新モードをオンにする
+    }
+    
+    // 更新モードをキャンセル
+    function cancelUpdate() {
+        // 元の予想結果を復元
+        betResult = originalBetResult;
+        selectedDinos = [];
+        error = null;
+        isUpdating = false;
+        originalBetResult = null;
     }
     
     // バックエンドのbet APIを呼び出す関数
@@ -203,6 +249,8 @@
             if (response.ok) {
                 betResult = data;
                 selectedDinos = [];
+                isUpdating = false; // 更新モードを終了し、送信完了画面を表示
+                originalBetResult = null; // 保存していた元のデータをクリア
             } else {
                 error = `エラー: ${data.error || response.statusText}`;
             }
@@ -288,6 +336,12 @@
 <div class="max-w-7xl mx-auto p-5 font-sans">
     <h1 class="text-center text-2xl lg:text-3xl text-gray-800 font-bold mb-8">恐竜の逆鱗取り競争 予想フォーム</h1>
     
+    {#if isLoading}
+        <div class="text-center p-5">
+            <p class="text-gray-600">データをロード中...</p>
+        </div>
+    {/if}
+    
     {#if !isBettingEnabled}
         <div class="text-center p-3 bg-red-100 border border-red-500 rounded-lg mb-6">
             <p class="text-red-700 font-semibold">
@@ -315,11 +369,13 @@
         </div>
     {/if}
     
-    <!-- 予想送信結果がある場合はフォームを非表示にする -->
-    {#if !betResult}
+    <!-- 予想送信結果がある場合も、更新モードの時はフォームを表示する -->
+    {#if !betResult || isUpdating}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-gray-50 rounded-xl p-5 shadow-md md:col-span-1">
-                <h2 class="text-lg text-gray-700 font-semibold pb-3 border-b-2 border-gray-200 mb-4">あなたの予想（3頭選択）</h2>
+                <h2 class="text-lg text-gray-700 font-semibold pb-3 border-b-2 border-gray-200 mb-4">
+                    {isUpdating ? 'あなたの予想を更新（3頭選択）' : 'あなたの予想（3頭選択）'}
+                </h2>
                 
                 <div class="flex flex-col gap-3 mb-5">
                     {#each Array(3) as _, i}
@@ -356,10 +412,10 @@
                 <div class="flex gap-3 mt-5">
                     <button 
                         class="flex-1 py-2 px-3 bg-gray-200 text-gray-600 font-semibold rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        on:click={resetBet}
-                        disabled={selectedDinos.length === 0 || isSubmitting}
+                        on:click={isUpdating ? cancelUpdate : resetBet}
+                        disabled={!isUpdating && selectedDinos.length === 0 || isSubmitting}
                     >
-                        選択をリセット
+                        {isUpdating ? '更新をキャンセル' : '選択をリセット'}
                     </button>
                     
                     <button 
@@ -410,9 +466,11 @@
         </div>
     {/if}
     
-    {#if betResult}
+    {#if betResult && !isUpdating}
         <div class="bg-gray-50 border-2 border-green-500 rounded-xl p-5 mt-8 mx-auto max-w-3xl">
-            <h2 class="text-xl text-green-600 font-semibold text-center mb-4">予想送信完了</h2>
+            <h2 class="text-xl text-green-600 font-semibold text-center mb-4">
+                {betResult.updated ? '予想更新完了' : '予想送信完了'}
+            </h2>
             <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
                 <div class="space-y-2">
                     <!-- betResult.betオブジェクトがある場合はそれを使用、なければbetResult自体を使用 -->
@@ -462,22 +520,35 @@
                         
                         {#if betResult.message}
                             <div class="mt-4 p-3 bg-green-50 rounded border border-green-300 text-green-700">
-                                <p class="text-center font-semibold">予想を受け付けました</p>
+                                <p class="text-center font-semibold">
+                                    {betResult.updated ? '予想を更新しました' : '予想を受け付けました'}
+                                </p>
                             </div>
                         {/if}
                     {/if}
                 </div>
             </div>
             
-            <button 
-                class="block w-full md:w-auto md:mx-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded transition-colors"
-                on:click={() => {
-                    // 予想更新モードに切り替え
-                    resetBet();
-                }}
-            >
-                 予想を更新する
-            </button>
+            <div class="flex justify-center space-x-4">
+                <button 
+                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded transition-colors"
+                    on:click={() => {
+                        // 予想更新モードに切り替え
+                        resetBet();
+                    }}
+                >
+                     予想を更新する
+                </button>
+                
+                {#if isUpdating}
+                    <button 
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded transition-colors"
+                        on:click={cancelUpdate}
+                    >
+                        キャンセル
+                    </button>
+                {/if}
+            </div>
         </div>
     {/if}
     

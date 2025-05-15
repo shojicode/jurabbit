@@ -5,6 +5,7 @@ export const API_URL = {
         current_race: `${API_BASE_URL}/current_race`,
         betting_status: `${API_BASE_URL}/betting_status`,
         result_by_id: (id: number) => `${API_BASE_URL}/result/${id}`,
+        user_prediction: `${API_BASE_URL}/user_prediction`,
     },
     post: {
         current_race: `${API_BASE_URL}/current_race`,

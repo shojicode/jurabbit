@@ -339,4 +339,35 @@ app.put('/bet/update', async (c) => {
   }
 })
 
+// ユーザーの予想を取得するAPI（新規追加）
+app.get('/user_prediction/:race_id', async (c) => {
+  try {
+    const raceId = parseInt(c.req.param('race_id'), 10);
+    const userId = getCookie(c, 'userId');
+    
+    if (!userId) {
+      return c.json({ error: 'User not identified' }, 401);
+    }
+    
+    const db = createDrizzleClient(c);
+    
+    const prediction = await db
+      .select()
+      .from(userPredictions)
+      .where(sql`${userPredictions.userId} = ${userId} AND ${userPredictions.raceId} = ${raceId}`);
+    
+    if (!prediction || prediction.length === 0) {
+      return c.json({ error: 'No prediction found for this race' }, 404);
+    }
+    
+    return c.json({
+      message: 'Prediction found',
+      bet: prediction[0]
+    });
+  } catch (error) {
+    console.error('Error fetching user prediction:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+})
+
 export default app
