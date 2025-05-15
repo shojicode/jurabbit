@@ -14,3 +14,5 @@ export const API_URL = {
         results: `${API_BASE_URL}/results`,
     }
 }
+
+export const MATENE_EVENT_URL = "https://matene.jp"; // Todo: 環境変数から取得するように修正
