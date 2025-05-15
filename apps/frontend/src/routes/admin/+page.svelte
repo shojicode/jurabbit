@@ -2,6 +2,7 @@
   <h1 class="text-2xl font-bold mb-4">管理者ページ</h1>
   
   <BettingStatusManager />
+  <RaceResultForm />
   
   <!-- ここに結果入力フォームなど他の管理機能を追加できます -->
 </main>
@@ -11,6 +12,7 @@
 // 機能：馬券購入締切/解禁, 結果入力
 
 import BettingStatusManager from '$lib/components/BettingStatusManager.svelte';
+import RaceResultForm from '$lib/components/RaceResultForm.svelte';
 
 </script>
 
