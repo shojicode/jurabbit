@@ -49,7 +49,7 @@
 
 <script>
 import { onMount } from 'svelte';
-import { API_BASE_URL } from '$lib';
+import { API_URL } from '$lib';
 
 // 状態変数
 let isBettingEnabled = $state(false);
@@ -60,7 +60,7 @@ let statusMessage = $state('');
 async function fetchBettingStatus() {
   try {
     isLoading = true;
-    const response = await fetch(`${API_BASE_URL}/betting_status`, {
+    const response = await fetch(API_URL.get.betting_status, {
       method: 'GET',
       credentials: 'include'
     });
@@ -86,7 +86,7 @@ async function enableBetting() {
     isLoading = true;
     statusMessage = '処理中...';
     
-    const response = await fetch(`${API_BASE_URL}/enable_betting`, {
+    const response = await fetch(API_URL.post.enable_betting, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -114,7 +114,7 @@ async function disableBetting() {
     isLoading = true;
     statusMessage = '処理中...';
     
-    const response = await fetch(`${API_BASE_URL}/disable_betting`, {
+    const response = await fetch(API_URL.post.disable_betting, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

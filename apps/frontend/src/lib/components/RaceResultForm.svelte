@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { API_URL } from '$lib';
   import { onMount } from 'svelte';
   
   // 型定義
@@ -144,7 +145,7 @@
         }))
       };
 
-      const response = await fetch('/api/results', {
+      const response = await fetch(API_URL.post.results, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
