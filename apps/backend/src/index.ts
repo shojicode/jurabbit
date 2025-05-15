@@ -3,7 +3,7 @@ import { getCookie, setCookie } from 'hono/cookie'
 import { cors } from 'hono/cors'
 import { D1Database, KVNamespace } from '@cloudflare/workers-types'
 import { drizzle } from 'drizzle-orm/d1'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { results, userPredictions } from './schema'
 import { randomUUID } from 'crypto'
@@ -139,13 +139,45 @@ app.post('/results', async (c) => {
       rank: result.rank
     }));
 
+    // 既存のレース結果があるか確認
+    const existingResults = await db
+      .select({ count: sql`count(*)` })
+      .from(results)
+      .where(eq(results.raceId, validatedRaceResult.data.raceId));
+    
+    const hasExistingResults = existingResults[0]?.count > 0;
+
+    // フォースアップデートフラグがある場合またはまだデータがない場合
+    const forceUpdate = c.req.query('forceUpdate') === 'true';
+    
+    if (hasExistingResults && !forceUpdate) {
+      // 既存の結果があり、強制更新フラグがない場合はエラーを返す
+      return c.json({ error: 'このレースの結果は既に入力されています' }, 409);
+    }
+
+    // 既存の結果がある場合は削除
+    if (hasExistingResults) {
+      await db
+        .delete(results)
+        .where(eq(results.raceId, validatedRaceResult.data.raceId));
+    }
+
+    // 新しい結果を挿入
     await db.insert(results).values(resultData);
     
     return c.json({
-      message: 'Results inserted successfully',
+      message: hasExistingResults 
+        ? 'Results updated successfully' 
+        : 'Results inserted successfully',
     })
   } catch (error) {
     console.error('Error inserting results:', error);
+    
+    // 一意性制約違反の場合は特定のエラーメッセージを返す
+    if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+      return c.json({ error: 'このレースの結果は既に入力されています' }, 409); // Conflict
+    }
+    
     return c.json({ error: 'Internal server error' }, 500);
   }
 })
