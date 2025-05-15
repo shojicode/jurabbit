@@ -47,13 +47,38 @@
             const urlRaceId = urlParams.get('raceId');
             
             if (urlRaceId && !isNaN(parseInt(urlRaceId))) {
+                // URLパラメータからレースIDを取得した場合
                 raceId = parseInt(urlRaceId);
                 await fetchResults();
+            } else {
+                // URLパラメータがない場合は最新のレースIDを取得
+                await fetchLatestRaceId();
             }
         } catch (err) {
             error = 'データの初期化に失敗しました: ' + (err instanceof Error ? err.message : String(err));
         }
     });
+    
+    // 最新のレースIDを取得する関数
+    async function fetchLatestRaceId() {
+        try {
+            const response = await fetch(API_URL.get.current_race);
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.currentRaceId) {
+                    raceId = parseInt(data.currentRaceId);
+                    await fetchResults();
+                } else {
+                    error = '有効なレースIDが取得できませんでした';
+                }
+            } else {
+                error = '最新のレースIDを取得できませんでした';
+            }
+        } catch (err) {
+            error = 'レースID取得エラー: ' + (err instanceof Error ? err.message : String(err));
+        }
+    }
     
     // 恐竜データの取得
     async function fetchDinoData() {

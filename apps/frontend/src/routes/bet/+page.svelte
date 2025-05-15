@@ -540,6 +540,13 @@
                      予想を更新する
                 </button>
                 
+                <a 
+                    href="/result"
+                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded transition-colors flex items-center"
+                >
+                    結果を確認する
+                </a>
+                
                 {#if isUpdating}
                     <button 
                         class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded transition-colors"
