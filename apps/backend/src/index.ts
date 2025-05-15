@@ -274,4 +274,69 @@ app.post('/bet', async (c) => {
   }
 })
 
+// update a bet (for users)
+app.put('/bet/update', async (c) => {
+  try {
+    const db = createDrizzleClient(c);
+
+    // まず、ベッティングが許可されているか確認
+    const status = await getKVValue(c, 'betting_enabled');
+    const isBettingEnabled = status === 'true';
+    
+    if (!isBettingEnabled) {
+      return c.json({ error: 'Betting is currently closed' }, 400);
+    }
+
+    const BetUpdateSchema = z.object({
+      raceId: z.number().int().positive(),
+      firstChoice: z.number().int().positive(),  // it should be a horse id
+      secondChoice: z.number().int().positive().optional(),
+      thirdChoice: z.number().int().positive().optional()
+    });
+
+    const validatedBet = BetUpdateSchema.safeParse(await c.req.json());
+    if (!validatedBet.success) {
+      return c.json(
+        {
+          error: 'Invalid request body',
+          details: validatedBet.error.format()
+        }, 400);
+    }
+
+    const parsedBody = validatedBet.data;
+    
+    // Cookieからユーザーを識別する
+    const userId = getCookie(c, 'userId');
+    
+    // ユーザーIDが見つからない場合はエラー
+    if (!userId) {
+      return c.json({ error: 'User not identified. Cannot update bet.' }, 401);
+    }
+
+    // 既存の予想を更新
+    await db
+      .update(userPredictions)
+      .set({
+        firstChoice: parsedBody.firstChoice,
+        secondChoice: parsedBody.secondChoice ?? null,
+        thirdChoice: parsedBody.thirdChoice ?? null
+      })
+      .where(sql`${userPredictions.userId} = ${userId} AND ${userPredictions.raceId} = ${parsedBody.raceId}`);
+
+    return c.json({
+      message: 'Bet updated successfully',
+      bet: {
+        userId: userId,
+        raceId: parsedBody.raceId,
+        firstChoice: parsedBody.firstChoice,
+        secondChoice: parsedBody.secondChoice,
+        thirdChoice: parsedBody.thirdChoice
+      }
+    });
+  } catch (error) {
+    console.error('Error updating bet:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+})
+
 export default app

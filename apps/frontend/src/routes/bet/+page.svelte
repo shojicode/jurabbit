@@ -19,6 +19,7 @@
     // 選択状態
     let selectedDinos: number[] = [];
     let isSubmitting = false;
+    let isUpdating = false; // 予想更新モード
     
     // ドラッグ＆ドロップ関連
     let draggedDinoId: number | null = null;
@@ -28,6 +29,7 @@
     // ページ読み込み時に初期データを取得
     onMount(async () => {
         try {
+            isUpdating = false; // 初期状態では更新モードをオフに
             await Promise.all([
                 fetchCurrentRace(),
                 fetchDinoData(),
@@ -101,6 +103,7 @@
         selectedDinos = [];
         betResult = null;
         error = null;
+        isUpdating = true; // 予想更新モードをオンにする
     }
     
     // バックエンドのbet APIを呼び出す関数
@@ -150,6 +153,55 @@
             if (response.ok) {
                 betResult = data;
                 // 予想送信成功時に入力フォームをクリア
+                selectedDinos = [];
+            } else {
+                error = `エラー: ${data.error || response.statusText}`;
+            }
+        } catch (err) {
+            error = 'APIエラー: ' + (err instanceof Error ? err.message : String(err));
+        } finally {
+            isSubmitting = false;
+        }
+    }
+    
+    // 予想更新用のAPI呼び出し関数
+    async function updateBetAPI() {
+        if (!currentRaceId) {
+            error = 'レースIDが取得できていません';
+            return;
+        }
+        
+        // 先に馬券購入状態を最新の情報に更新
+        await fetchBettingStatus();
+        
+        if (!isBettingEnabled) {
+            error = '現在、馬券の購入が締め切られています。予想を更新できません。';
+            return;
+        }
+        
+        try {
+            isSubmitting = true;
+            error = null;
+            
+            // APIリクエスト - PUT(更新)メソッドを使用
+            const response = await fetch(`${API_URL.post.bet}/update`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    raceId: currentRaceId,
+                    firstChoice: selectedDinos[0] || null,
+                    secondChoice: selectedDinos[1] || null,
+                    thirdChoice: selectedDinos[2] || null
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                betResult = data;
                 selectedDinos = [];
             } else {
                 error = `エラー: ${data.error || response.statusText}`;
@@ -312,10 +364,10 @@
                     
                     <button 
                         class="flex-2 py-2 px-3 bg-green-500 text-white font-semibold rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        on:click={callBetAPI}
+                        on:click={isUpdating ? updateBetAPI : callBetAPI}
                         disabled={selectedDinos.length !== 3 || !isBettingEnabled || isSubmitting}
                     >
-                        {isSubmitting ? '送信中...' : '予想を送信'}
+                        {isSubmitting ? '送信中...' : isUpdating ? '予想を更新' : '予想を送信'}
                     </button>
                 </div>
             </div>
@@ -419,9 +471,12 @@
             
             <button 
                 class="block w-full md:w-auto md:mx-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded transition-colors"
-                on:click={resetBet}
+                on:click={() => {
+                    // 予想更新モードに切り替え
+                    resetBet();
+                }}
             >
-                新しい予想をする
+                 予想を更新する
             </button>
         </div>
     {/if}
