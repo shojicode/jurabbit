@@ -11,6 +11,14 @@
       <a href={MATENE_EVENT_URL} class="block bg-blue-100 text-blue-700 hover:bg-blue-200 transition py-3 px-4 rounded-md text-center font-medium mb-4">
         MATENE（マテネ） | 無料で今すぐ使える順番待ち/整理券システム
       </a>
+
+      <iframe
+        src="https://matene.jp/apps/user/?event_id=f0zyJUd52YONzt9L7u5U"
+        width="100%"
+        height="400"
+        style="border: 1px solid #ccc; border-radius: 8px;"
+        title="MATENE 整理券入力画面"
+      ></iframe>
       
       <p class="text-gray-700 mb-2">上記のサイトにアクセスし、配布された整理券番号を入力してください。現在呼び出されている番号が表示されますので、自分の番号がくるまでお待ち願います。</p>
       
