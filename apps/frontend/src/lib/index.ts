@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://localhost:8787"; // Todo: 環境変数から取得するように修正
+// const API_BASE_URL = import.meta.env.BACKEND_URL
+const API_BASE_URL = "https://backend.shojicode.workers.dev"
 
 export const API_URL = {
     get: {

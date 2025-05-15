@@ -74,7 +74,7 @@ const app = new Hono<{Bindings: Bindings}>()
 
 // CORSの設定
 app.use('*', cors({
-  origin: 'http://localhost:5173', // TODO: 要修正
+  origin: process.env.BACKEND_URL || 'http://localhost:8787',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
