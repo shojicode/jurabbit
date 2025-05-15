@@ -46,4 +46,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages publish apps/frontend/.svelte-kit/cloudflare --project-name=jurabbit-frontend
+          command: pages publish apps/frontend/.svelte-kit/cloudflare --project-name=jurabbit
