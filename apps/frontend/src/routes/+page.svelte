@@ -1,5 +1,5 @@
-<main class="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8" style="background-image: url('/image/background.jpg')">
-  <img src="apps/frontend/static/image/top.png" width="413" height="898"  alt="トップ画面">
+<main class="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8" style="background-image: url('/apps/frontend/static/image/background.PNG'); background-size: cover; background-position: center;">
+  <img src="/static/image/top.png" width="413" height="898"  alt="トップ画面">
   <div class="max-w-3xl mx-auto">
     <h1 class="text-3xl font-bold text-center text-blue-800 mb-8">第13回兎原祭　Dinoshow@運動場（晴天の場合）</h1>
     
