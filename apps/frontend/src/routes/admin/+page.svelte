@@ -1,10 +1,12 @@
 <main class="container mx-auto p-4">
   <h1 class="text-2xl font-bold mb-4">管理者ページ</h1>
   
-  <BettingStatusManager />
-  <RaceResultForm />
+  <AdminAuth>
+    <BettingStatusManager />
+    <RaceResultForm />
   
-  <!-- ここに結果入力フォームなど他の管理機能を追加できます -->
+    <!-- ここに結果入力フォームなど他の管理機能を追加できます -->
+  </AdminAuth>
 </main>
 
 <script>
@@ -13,6 +15,7 @@
 
 import BettingStatusManager from '$lib/components/BettingStatusManager.svelte';
 import RaceResultForm from '$lib/components/RaceResultForm.svelte';
+import AdminAuth from '$lib/components/AdminAuth.svelte';
 
 </script>
 

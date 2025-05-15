@@ -6,6 +6,7 @@ export const API_URL = {
         betting_status: `${API_BASE_URL}/betting_status`,
         result_by_id: (id: number) => `${API_BASE_URL}/result/${id}`,
         user_prediction: `${API_BASE_URL}/user_prediction`,
+        admin_verify: `${API_BASE_URL}/admin/verify`,
     },
     post: {
         current_race: `${API_BASE_URL}/current_race`,
@@ -13,6 +14,8 @@ export const API_URL = {
         disable_betting: `${API_BASE_URL}/disable_betting`,
         bet: `${API_BASE_URL}/bet`,
         results: `${API_BASE_URL}/results`,
+        admin_login: `${API_BASE_URL}/admin/login`,
+        admin_logout: `${API_BASE_URL}/admin/logout`,
     }
 }
 

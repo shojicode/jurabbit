@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
-import { getCookie, setCookie } from 'hono/cookie'
+import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
 import { cors } from 'hono/cors'
+import { jwt, sign, verify } from 'hono/jwt'
 import { D1Database, KVNamespace } from '@cloudflare/workers-types'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, sql } from 'drizzle-orm'
@@ -10,7 +11,9 @@ import { randomUUID } from 'crypto'
 
 type Bindings = {
   jurabbit_mode: KVNamespace,
-  jurabbit_store: D1Database
+  jurabbit_store: D1Database,
+  ADMIN_PASSWORD: string,
+  ADMIN_JWT_SECRET: string
 }
 
 // ヘルパー関数-------------------------------------------------------
@@ -42,6 +45,29 @@ const createDrizzleClient = (c: any) => {
 // UUIDを生成するラッパ（ソースコードの見通しを良くするため）
 const generateUserId = randomUUID;
 
+// 認証ミドルウェア
+const adminAuth = async (c: any, next: any) => {
+  const token = getCookie(c, 'admin_token');
+  
+  if (!token) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  
+  try {
+    // トークンを検証
+    const secret = c.env.ADMIN_JWT_SECRET || 'fallback-secret-do-not-use-in-production';
+    const verified = await verify(token, secret);
+    
+    if (verified && verified.admin === true) {
+      await next();
+    } else {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+  } catch (e) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+}
+
 // ---------------------------------------------------------------
 
 const app = new Hono<{Bindings: Bindings}>()
@@ -59,6 +85,61 @@ app.get('/', (c) => {
   return c.text('This is the backend API for jurabbit')
 })
 
+// 管理者ログインAPI
+app.post('/admin/login', async (c) => {
+  try {
+    const { password } = await c.req.json();
+    const adminPassword = c.env.ADMIN_PASSWORD;
+    
+    if (!adminPassword) {
+      console.error('ADMIN_PASSWORD environment variable is not set');
+      return c.json({ error: 'Server configuration error' }, 500);
+    }
+    
+    // パスワードの検証
+    if (password !== adminPassword) {
+      // レスポンスの遅延を加えてブルートフォース攻撃を困難にする
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return c.json({ error: 'Invalid password' }, 401);
+    }
+    
+    // JWTトークンの作成
+    const secret = c.env.ADMIN_JWT_SECRET || 'fallback-secret-do-not-use-in-production';
+    const token = await sign({ admin: true }, secret);
+    
+    // HTTP-onlyクッキーにトークンを設定
+    setCookie(c, 'admin_token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Strict',
+      maxAge: 60 * 60 * 24, // 24時間
+      path: '/'
+    });
+    
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Login error:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+});
+
+// 管理者ログアウトAPI
+app.post('/admin/logout', (c) => {
+  deleteCookie(c, 'admin_token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'Strict',
+    path: '/'
+  });
+  
+  return c.json({ success: true });
+});
+
+// 管理者認証確認API
+app.get('/admin/verify', adminAuth, (c) => {
+  return c.json({ authenticated: true });
+});
+
 // current race id
 app.get('/current_race', async (c) => {
   const currentRaceId = await getKVValue(c, 'current_race');
@@ -69,7 +150,7 @@ app.get('/current_race', async (c) => {
 })
 
 // set current race id (for operators)
-app.post('/current_race', async (c) => {
+app.post('/current_race', adminAuth, async (c) => {
   const body = await c.req.json();
   const raceId = body.raceId;
 
@@ -80,15 +161,14 @@ app.post('/current_race', async (c) => {
   return c.json({ message: 'Current race id set successfully' });
 })
 
-
 // enable betting (for operators)
-app.post('/enable_betting', async (c) => {
+app.post('/enable_betting', adminAuth, async (c) => {
   await setKVValue(c, 'betting_enabled', 'true');
   return c.json({ message: 'Betting enabled' })
 })
 
 // disable betting (for operators)
-app.post('/disable_betting', async (c) => {
+app.post('/disable_betting', adminAuth, async (c) => {
   await setKVValue(c, 'betting_enabled', 'false');
   return c.json({ message: 'Betting disabled' })
 })
@@ -104,14 +184,8 @@ app.get('/betting_status', async (c) => {
   });
 })
 
-// get info about horses (for users)
-// リクエスト数の削減のため、このAPIはフロントエンドのSSG時に呼び出され、一般のユーザーが直接利用することはない
-// app.get('/horses', (c) => {
-  
-// })
-
 // input the results of a race (for operators)
-app.post('/results', async (c) => {
+app.post('/results', adminAuth, async (c) => {
   try {
     const db = createDrizzleClient(c);
 
@@ -197,10 +271,6 @@ app.get('/results/:id', async (c) => {
   
   return c.json(searchedResults);
 })
-
-// // get winners by race id (for users)
-// app.get('/winners/:race_id', (c) => {
-// })
 
 // issue a bet (for users)
 app.post('/bet', async (c) => {

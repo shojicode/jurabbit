@@ -6,9 +6,9 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  // "vars": {
-  //   "MY_VAR": "my-variable"
-  // },
+  "vars": {
+    // "ADMIN_PASSWORD": "admin",  // This is a bad joke (for testing)
+  },
   "kv_namespaces": [
     {
       "binding": "jurabbit_mode",
