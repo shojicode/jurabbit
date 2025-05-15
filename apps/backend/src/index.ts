@@ -74,7 +74,7 @@ const app = new Hono<{Bindings: Bindings}>()
 
 // CORSの設定
 app.use('*', cors({
-  origin: process.env.BACKEND_URL || 'http://localhost:8787',
+  origin: [ 'https://develop.jurabbit.pages.dev', 'https://jurabbit.pages.dev' ],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
