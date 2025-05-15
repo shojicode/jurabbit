@@ -4,8 +4,8 @@
     <div class="text-2xl font-bold text-red-600">とっても</div>
     <div class="text-3xl font-extrabold text-red-700 mb-6">だいじなこと</div>
 
-    <div class="text-2xl font-bold bg-yellow-100 p-4 rounded-lg border-2 border-yellow-400 shadow-md">
-      本企画は賭博ではありません！！！！👍
+    <div class="text-2xl font-bold bg-yellow-100 p-4 rounded-lg border-2 border-yellow-400 shadow-md" style="word-break: keep-all; overflow-wrap: break-word;">
+      本企画は賭博では<wbr>ありません！！！！👍
     </div>
   </div>
 
