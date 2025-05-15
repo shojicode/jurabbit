@@ -39,7 +39,7 @@
                 fetchBettingStatus()
             ]);
             
-            // 現在のレースIDが取得できたら、ユーザーの予想を取得
+            // 現在の競争IDが取得できたら、ユーザーの予想を取得
             if (currentRaceId) {
                 await fetchUserPrediction();
             }
@@ -48,7 +48,7 @@
         }
     });
     
-    // 現在のレースIDを取得
+    // 現在の競争IDを取得
     async function fetchCurrentRace() {
         try {
             const response = await fetch(API_URL.get.current_race);
@@ -56,10 +56,10 @@
                 const data = await response.json();
                 currentRaceId = parseInt(data.currentRaceId);
             } else {
-                error = '現在のレースIDを取得できませんでした';
+                error = '現在の競争IDを取得できませんでした';
             }
         } catch (err) {
-            throw new Error('レースID取得エラー: ' + (err instanceof Error ? err.message : String(err)));
+            throw new Error('競争ID取得エラー: ' + (err instanceof Error ? err.message : String(err)));
         }
     }
     
@@ -155,12 +155,12 @@
     // バックエンドのbet APIを呼び出す関数
     async function callBetAPI() {
         if (!currentRaceId) {
-            error = 'レースIDが取得できていません';
+            error = '競争IDが取得できていません';
             return;
         }
         
         if (!isBettingEnabled) {
-            error = '現在、馬券の購入が締め切られています';
+            error = '現在、予想の受付が締め切られています';
             return;
         }
         
@@ -213,15 +213,15 @@
     // 予想更新用のAPI呼び出し関数
     async function updateBetAPI() {
         if (!currentRaceId) {
-            error = 'レースIDが取得できていません';
+            error = '競争IDが取得できていません';
             return;
         }
         
-        // 先に馬券購入状態を最新の情報に更新
+        // 先に予想受付状態を最新の情報に更新
         await fetchBettingStatus();
         
         if (!isBettingEnabled) {
-            error = '現在、馬券の購入が締め切られています。予想を更新できません。';
+            error = '現在、予想の受付が締め切られています。予想を更新できません。';
             return;
         }
         
@@ -346,7 +346,7 @@
         <div class="text-center p-3 bg-red-100 border border-red-500 rounded-lg mb-6">
             <p class="text-red-700 font-semibold">
                 <span class="material-icons text-lg align-middle">lock</span>
-                現在、馬券購入は締め切られています
+                現在、予想の受付は締め切られています
             </p>
             <div class="flex justify-center mt-2">
                 <button 
@@ -359,13 +359,13 @@
         </div>
     {:else}
         <div class="text-center p-3 bg-green-100 border border-green-500 rounded-lg mb-6">
-            <p class="text-green-700 font-semibold">馬券購入が可能です！</p>
+            <p class="text-green-700 font-semibold">予想の受付中です！</p>
         </div>
     {/if}
     
     {#if currentRaceId}
         <div class="text-center mb-8">
-            <h2 class="text-xl text-blue-600 font-semibold">現在のレース: #{currentRaceId}</h2>
+            <h2 class="text-xl text-blue-600 font-semibold">現在の競争: #{currentRaceId}</h2>
         </div>
     {/if}
     
@@ -476,7 +476,7 @@
                     <!-- betResult.betオブジェクトがある場合はそれを使用、なければbetResult自体を使用 -->
                     {#if betResult.bet || betResult}
                         {@const bet = betResult.bet || betResult}
-                        <p><span class="font-semibold">レースID:</span> {bet.raceId || '不明'}</p>
+                        <p><span class="font-semibold">競争ID:</span> {bet.raceId || '不明'}</p>
                         <p class="font-semibold mb-2">あなたの予想:</p>
                         <div class="pl-5 space-y-2">
                             {#if bet.firstChoice !== undefined}

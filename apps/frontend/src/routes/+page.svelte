@@ -48,6 +48,7 @@
     <div class="mb-8">
       <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">特別営業の内容</h2>
       <p class="text-lg text-gray-700 mb-6">特別営業の内容は...<span class="line-through text-red-400">賭博</span><span class="font-semibold text-green-600">恐竜の逆鱗取り競争の勝者あて</span>です！</p>
+      <p>恐竜たちが喉元についた逆鱗を取り合います。</p>
       
       <div class="bg-blue-50 rounded-lg p-5 mb-6">
         <h3 class="text-lg font-semibold text-blue-800 mb-3 flex items-center">
@@ -55,10 +56,17 @@
         </h3>
         <ul class="list-disc pl-6 space-y-2 text-gray-700">
           <li>参加者は特別営業の時間帯に当企画までお越しください。</li>
-          <li>競技開始が近づくと、以下のフォームが送信可能になります！恐竜データをよく見て、最後に残る3匹を予想してください。</li>
+          <li>競技開始が近づくと、以下のページから投票可能になります！恐竜データをよく見て、最後に残る3匹を予想してください。</li>
           <li>順位まで当てる必要はありません。あくまで、最後に残った三匹の組み合わせさえ合っていればOKです！</li>
           <li>予想が終わったら、フォームを送信してください。</li>
         </ul>
+        
+        <div class="mt-6 text-center">
+          <a href="/bet" class="inline-block px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white font-bold rounded-lg shadow-md hover:from-green-700 hover:to-blue-700 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">
+            <span class="material-icons mr-2">sports_score</span>
+            逆鱗取り競争に投票する
+          </a>
+        </div>
       </div>
       
       <div class="bg-amber-50 rounded-lg p-5">
