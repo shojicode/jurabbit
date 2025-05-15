@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { getCookie, setCookie } from 'hono/cookie'
+import { cors } from 'hono/cors'
 import { D1Database, KVNamespace } from '@cloudflare/workers-types'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq } from 'drizzle-orm'
@@ -12,12 +13,15 @@ type Bindings = {
   jurabbit_store: D1Database
 }
 
+// ヘルパー関数-------------------------------------------------------
+
 // KVを操作するヘルパー関数
 const getKVValue = async (c: any, key: string) => {
   if (!c.env.jurabbit_mode) {
     return c.json({ error: 'KV storage is not available' }, 500);
   }
   const value = await c.env.jurabbit_mode.get(key);
+  return value;
 }
 
 const setKVValue = async (c: any, key: string, value: string) => {
@@ -35,7 +39,20 @@ const createDrizzleClient = (c: any) => {
   return drizzle(c.env.jurabbit_store);
 }
 
+// UUIDを生成するラッパ（ソースコードの見通しを良くするため）
+const generateUserId = randomUUID;
+
+// ---------------------------------------------------------------
+
 const app = new Hono<{Bindings: Bindings}>()
+
+// CORSの設定
+app.use('*', cors({
+  origin: 'http://localhost:5173', // TODO: 要修正
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}))
 
 // API Documentation is in ../README.md
 app.get('/', (c) => {
@@ -106,7 +123,7 @@ app.post('/results', async (c) => {
       })).nonempty()
     });
 
-    const validatedRaceResult = RaceResultSchema.safeParse(c.req.json());
+    const validatedRaceResult = RaceResultSchema.safeParse(await c.req.json());
 
     if (!validatedRaceResult.success) {
       return c.json(
@@ -166,7 +183,7 @@ app.post('/bet', async (c) => {
       thirdChoice: z.number().int().positive().optional()
     });
 
-    const validatedBet = BetSchema.safeParse(c.req.json());
+    const validatedBet = BetSchema.safeParse(await c.req.json());
     if (!validatedBet.success) {
       return c.json(
         {
@@ -175,25 +192,28 @@ app.post('/bet', async (c) => {
         }, 400);
     }
 
-    // ユーザーIDがない場合は生成してクッキーに保存
-    if (!validatedBet.data.userId) {
-      const newUserId = generateUserId();
-      setCookie(c, 'userId', newUserId, {
+    const parsedBody = validatedBet.data;
+    
+    // ユーザーIDを取得または使用
+    let userId = getCookie(c, 'userId');
+    
+    // Cookieにユーザーが存在しない場合は、リクエストボディのユーザーIDを使うか新しく生成する
+    if (!userId) {
+      console.log('userId not found in cookie, using request body or generating new one');
+      userId = parsedBody.userId || generateUserId();
+      // 新しいユーザーIDをCookieに保存
+      setCookie(c, 'userId', userId, {
         httpOnly: true,
         secure: true,
         sameSite: 'Strict',
         maxAge: 60 * 60 * 24 * 2, // 2 days
       });
-      validatedBet.data.userId = newUserId;
     }
 
-
-    const parsedBody = validatedBet.data;
-    
     await db
       .insert(userPredictions)
       .values({
-        userId: parsedBody.userId,
+        userId: userId, 
         raceId: parsedBody.raceId,
         firstChoice: parsedBody.firstChoice,
         secondChoice: parsedBody.secondChoice ?? null,
@@ -203,7 +223,7 @@ app.post('/bet', async (c) => {
     return c.json({
       message: 'Bet placed successfully',
       bet: {
-        userId: parsedBody.userId,
+        userId: userId, // 実際に使用したuserIdを返す
         raceId: parsedBody.raceId,
         firstChoice: parsedBody.firstChoice,
         secondChoice: parsedBody.secondChoice,
@@ -221,7 +241,5 @@ app.post('/bet', async (c) => {
     return c.json({ error: 'Internal server error' }, 500);
   }
 })
-
-const generateUserId = randomUUID;
 
 export default app
