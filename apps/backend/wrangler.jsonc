@@ -1,0 +1,39 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "backend",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-05-06",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "vars": {
+    // "ADMIN_PASSWORD": "admin",  // This is a bad joke (for testing)
+  },
+  "kv_namespaces": [
+    {
+      "binding": "jurabbit_mode",
+      "id": "1255721fc308415a9279c74a98172281",
+      "preview_id": "7abe99c954144b4f85eafb20e2f1cae1"
+    }
+  ],
+  // "r2_buckets": [
+  //   {
+  //     "binding": "MY_BUCKET",
+  //     "bucket_name": "my-bucket"
+  //   }
+  // ],
+  "d1_databases": [
+    {
+      "binding": "jurabbit_store",
+      "database_name": "jurabbit_store",
+      "database_id": "13471d77-b608-410e-b0d5-1422d0863fa8"
+    }
+  ]
+  // "ai": {
+  //   "binding": "AI"
+  // },
+  // "observability": {
+  //   "enabled": true,
+  //   "head_sampling_rate": 1
+  // }
+}

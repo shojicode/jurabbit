@@ -1,0 +1,34 @@
+{
+    "dinos": [
+        {
+            "id": 1,
+            "name": "Tyrannosaurus Rex",
+            "description": "The Tyrannosaurus Rex, or T-Rex, was one of the largest land carnivores of all time. It lived during the late Cretaceous period, around 68 to 66 million years ago. With its massive skull, powerful jaws, and sharp teeth, it was a formidable predator."
+        },
+        {
+            "id": 2,
+            "name": "Triceratops",
+            "description": "Triceratops was a large herbivorous dinosaur that lived during the late Cretaceous period. It is known for its three distinct facial horns and a large bony frill at the back of its head. Triceratops was one of the last dinosaurs to exist before the mass extinction event."
+        },
+        {
+            "id": 3,
+            "name": "Velociraptor",
+            "description": "Velociraptor was a small, feathered dinosaur that lived during the late Cretaceous period. It is known for its agility and intelligence, often depicted as a pack hunter. Velociraptor had a distinctive sickle-shaped claw on each foot, which it likely used to catch prey."
+        },
+        {
+            "id": 4,
+            "name": "Brachiosaurus",
+            "description": "Brachiosaurus was a massive sauropod dinosaur that lived during the late Jurassic period. It is known for its long neck and large body, which allowed it to reach high vegetation. Brachiosaurus was one of the tallest dinosaurs, with some estimates suggesting it could reach heights of up to 40 feet."
+        },
+        {
+            "id": 5,
+            "name": "Stegosaurus",
+            "description": "Stegosaurus was a herbivorous dinosaur that lived during the late Jurassic period. It is known for its distinctive double row of large bony plates along its back and its spiked tail, which it likely used for defense against predators."
+        },
+        {
+            "id": 6,
+            "name": "Spinosaurus",
+            "description": "Spinosaurus was a large carnivorous dinosaur that lived during the late Cretaceous period. It is known for its sail-like structure on its back, formed by elongated neural spines. Spinosaurus is believed to have been semi-aquatic, hunting both land and water prey."
+        }
+    ]
+}
