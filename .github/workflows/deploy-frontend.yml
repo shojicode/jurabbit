@@ -2,7 +2,7 @@ name: Deploy Frontend to Cloudflare Pages
 
 on:
   push:
-    branches: [main, feature/*]
+    branches: [main, feature/*, develop]
     paths:
       - "apps/frontend/**"
       - "apps/shared/**"
