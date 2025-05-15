@@ -3,8 +3,5 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
-	css: {
-		transformer: 'postcss',
-	}
+	plugins: [sveltekit(), tailwindcss()],
 });
